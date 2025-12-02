@@ -1,0 +1,2 @@
+"0","horizon_sub$herb_wood[horizon_sub$NewEcoType %in% c(""Grasslands"", ""Croplands"")] = ""Herbaceous"""
+"0","options(contrasts = c(""contr.sum"",""contr.poly""))"

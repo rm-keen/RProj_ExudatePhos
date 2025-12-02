@@ -1,0 +1,7 @@
+"0","horizon_sub$Location_knzmerge = ""XX"""
+"0","horizon_sub$Location_knzmerge[horizon_sub$Location == ""Calhoun""] <- ""Calhoun"""
+"0","horizon_sub$Location_knzmerge[horizon_sub$Location == ""Coal Creek""] <- ""Coal Creek"""
+"0","horizon_sub$Location_knzmerge[horizon_sub$Location == ""Reynolds Creek""] <- ""Reynolds Creek"""
+"0","horizon_sub$Location_knzmerge[horizon_sub$Location == ""EKS""] <- ""EKS"""
+"0","horizon_sub$Location_knzmerge[horizon_sub$Location == ""HAY""] <- ""HAY"""
+"0","horizon_sub$Location_knzmerge[horizon_sub$Location %in% c(""Konza"", ""KNZ"")] <- ""Konza"""

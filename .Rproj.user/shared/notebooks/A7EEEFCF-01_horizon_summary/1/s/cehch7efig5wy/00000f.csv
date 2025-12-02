@@ -1,0 +1,7 @@
+"0","horizon_sub$MAT = 999"
+"0","horizon_sub$MAT[horizon_sub$Location == ""Calhoun""] = 16"
+"0","horizon_sub$MAT[horizon_sub$Location == ""Coal Creek""] = 1.8"
+"0","horizon_sub$MAT[horizon_sub$Location == ""Reynolds Creek""] = 7.8"
+"0","horizon_sub$MAT[horizon_sub$Location == ""HAY""] = 12.3"
+"0","horizon_sub$MAT[horizon_sub$Location %in% c(""KNZ"", ""Konza"")] = 12.4"
+"0","horizon_sub$MAT[horizon_sub$Location == ""EKS""] = 13.2"

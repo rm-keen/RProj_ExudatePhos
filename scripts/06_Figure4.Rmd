@@ -1,0 +1,467 @@
+---
+title: "06_Figure4"
+output: html_document
+date: "2025-10-13"
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggpubr)
+library(lmerTest)
+library(car)
+library(emmeans)
+```
+
+Set contrasts
+```{r message = FALSE, warning = FALSE}
+options(contrasts = c("contr.sum","contr.poly"))
+```
+
+
+# 1 - Load data files
+```{r}
+horizon_sub <- read_rds(here("data_intermediate", "horizon_sub.rds"))
+print(horizon_sub)
+```
+
+Combine Konza sites within a new 'Location' column
+```{r}
+horizon_sub$Location_knzmerge = "XX"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "Calhoun"] <- "Calhoun"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "Coal Creek"] <- "Coal Creek"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "Reynolds Creek"] <- "Reynolds Creek"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "EKS"] <- "EKS"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "HAY"] <- "HAY"
+horizon_sub$Location_knzmerge[horizon_sub$Location %in% c("Konza", "KNZ")] <- "Konza"
+```
+
+
+## Site-mean models
+### MAP
+#### APase
+A HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "A") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(AP_Efficiency + 0.001), na.rm = TRUE),
+    MAP = unique(MAP)
+  )
+
+mod_site <- lm(mean_log ~ MAP, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+```{r}
+MAP_seq <- data.frame(MAP = seq(min(site_dat$MAP),
+                                max(site_dat$MAP),
+                                length.out = 200))
+
+pred_A <- predict(mod_site, 
+                  newdata = MAP_seq,
+                  se.fit = TRUE)
+
+MAP_seq$fit <- exp(pred_A$fit) - 0.001
+MAP_seq$lower <- exp(pred_A$fit - 1.96 * pred_A$se.fit) - 0.001
+MAP_seq$upper <- exp(pred_A$fit + 1.96 * pred_A$se.fit) - 0.001
+
+# grab raw profile-level data:
+raw_A <- horizon_sub %>%
+  filter(Horizon == "A") %>%
+  mutate(eff_pct = AP_Efficiency * 100)
+```
+
+B HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "B") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(AP_Efficiency + 0.001), na.rm = TRUE),
+    MAP = unique(MAP)
+  )
+
+mod_site <- lm(mean_log ~ MAP, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+APASE MAP PANEL
+```{r fig.height=2.25, fig.width=2.61, warning = FALSE}
+p = ggplot(subset(horizon_sub, Horizon %in% c("A", "B")), 
+                 aes(MAP, AP_Efficiency)) + 
+  theme_bw() + geom_jitter(aes(color = Horizon), size = 2, alpha = 0.9) + 
+  
+  # back-transformed trendline
+  geom_line(data = MAP_seq, aes(x = MAP, y = fit),
+            color = "#C2DA86", linetype = 'dotted', size = 0.7) +
+  
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 11, color = "black"),
+        panel.grid = element_line(color = 'white'),
+        legend.position = 'none') + 
+  labs(y = "AP efficiency (%)", color = " ") +
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C"));p
+```
+
+
+------------------------
+
+
+#### Malic acid
+A HORIZON
+```{r}
+# site-mean model
+site_means_A <- horizon_sub |>
+  dplyr::filter(Horizon == "A") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(MA_Efficiency + 0.001), na.rm = TRUE),
+    MAP = unique(MAP)
+  )
+
+mod_sitemean <- lm(mean_log ~ MAP, data = site_means_A)
+summary(mod_sitemean)
+Anova(mod_sitemean)
+```
+
+```{r}
+MAP_seq <- data.frame(MAP = seq(min(site_means_A$MAP),
+                                max(site_means_A$MAP),
+                                length.out = 200))
+
+pred_A <- predict(mod_sitemean, 
+                  newdata = MAP_seq,
+                  se.fit = TRUE)
+
+MAP_seq$fit <- exp(pred_A$fit) - 0.001
+MAP_seq$lower <- exp(pred_A$fit - 1.96 * pred_A$se.fit) - 0.001
+MAP_seq$upper <- exp(pred_A$fit + 1.96 * pred_A$se.fit) - 0.001
+
+# grab raw profile-level data:
+raw_A <- horizon_sub %>%
+  filter(Horizon == "A") %>%
+  mutate(eff_pct = MA_Efficiency * 100)
+```
+
+B HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "B") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(MA_Efficiency + 0.001), na.rm = TRUE),
+    MAP = unique(MAP)
+  )
+
+mod_site <- lm(mean_log ~ MAP, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+MALIC ACID MAP PANEL
+```{r fig.height=2.25, fig.width=2.69, warning = FALSE}
+p = ggplot(subset(horizon_sub, Horizon %in% c("A", "B")), 
+                 aes(MAP, MA_Efficiency)) + 
+  theme_bw() + geom_jitter(aes(color = Horizon), size = 2, alpha = 0.9) +
+  
+  # back-transformed trendline
+  geom_line(data = MAP_seq, aes(x = MAP, y = fit),
+            color = "#C2DA86", linetype = 'longdash', size = 0.7) +
+  
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 11, color = "black"),
+        panel.grid = element_line(color = 'white'),
+        legend.position = 'none') + 
+  labs(y = "MA efficiency (%)", color = " ") +
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C"));p
+```
+
+
+------------------------
+
+
+#### Oxalic acid
+A HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "A") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(OA_Efficiency + 0.001), na.rm = TRUE),
+    MAP = unique(MAP)
+  )
+
+mod_site <- lm(mean_log ~ MAP, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+B HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "B") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(OA_Efficiency + 0.001), na.rm = TRUE),
+    MAP = unique(MAP)
+  )
+
+mod_site <- lm(mean_log ~ MAP, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+OXALIC ACID MAP PANEL
+```{r fig.height=2.25, fig.width=2.53, warning = FALSE}
+p = ggplot(subset(horizon_sub, Horizon %in% c("A", "B")), 
+                 aes(MAP, OA_Efficiency)) + 
+  theme_bw() + geom_jitter(aes(color = Horizon), size = 2, alpha = 0.9) + 
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 11, color = "black"),
+        panel.grid = element_line(color = 'white'),
+        legend.position = 'none') + 
+  labs(y = "OA efficiency (%)", color = " ") +
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C"));p 
+```
+
+
+
+------------------------
+------------------------
+
+
+### MAT
+#### APase
+A HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "A") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(AP_Efficiency + 0.001), na.rm = TRUE),
+    MAT = unique(MAT)
+  )
+
+mod_site <- lm(mean_log ~ MAT, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+```{r}
+MAT_seq <- data.frame(MAT = seq(min(site_dat$MAT),
+                                max(site_dat$MAT),
+                                length.out = 200))
+
+pred_A <- predict(mod_site, 
+                  newdata = MAT_seq,
+                  se.fit = TRUE)
+
+MAT_seq$fit <- exp(pred_A$fit) - 0.001
+MAT_seq$lower <- exp(pred_A$fit - 1.96 * pred_A$se.fit) - 0.001
+MAT_seq$upper <- exp(pred_A$fit + 1.96 * pred_A$se.fit) - 0.001
+
+# grab raw profile-level data:
+raw_A <- horizon_sub %>%
+  filter(Horizon == "A") %>%
+  mutate(eff_pct = AP_Efficiency * 100)
+```
+
+B HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "B") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(AP_Efficiency + 0.001), na.rm = TRUE),
+    MAT = unique(MAT)
+  )
+
+mod_site <- lm(mean_log ~ MAT, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+APASE MAT PANEL
+```{r fig.height=2.25, fig.width=2.61, warning = FALSE}
+p = ggplot(subset(horizon_sub, Horizon %in% c("A", "B")), 
+                 aes(MAT, AP_Efficiency)) + 
+  theme_bw() + geom_jitter(aes(color = Horizon), size = 2, alpha = 0.9) + 
+  
+  # back-transformed trendline
+  geom_line(data = MAT_seq, aes(x = MAT, y = fit),
+            color = "#C2DA86", linetype = 'longdash', size = 0.7) +
+  
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 11, color = "black"),
+        panel.grid = element_line(color = 'white'),
+        legend.position = 'none') + 
+  labs(y = "AP efficiency (%)", color = " ") +
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C"));p
+```
+
+
+------------------------
+
+
+#### Malic acid
+A HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "A") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(MA_Efficiency + 0.001), na.rm = TRUE),
+    MAT = unique(MAT)
+  )
+
+mod_site <- lm(mean_log ~ MAT, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+```{r}
+MAT_seq <- data.frame(MAT = seq(min(site_dat$MAT),
+                                max(site_dat$MAT),
+                                length.out = 200))
+
+pred_A <- predict(mod_site, 
+                  newdata = MAT_seq,
+                  se.fit = TRUE)
+
+MAT_seq$fit <- exp(pred_A$fit) - 0.001
+MAT_seq$lower <- exp(pred_A$fit - 1.96 * pred_A$se.fit) - 0.001
+MAT_seq$upper <- exp(pred_A$fit + 1.96 * pred_A$se.fit) - 0.001
+
+# grab raw profile-level data:
+raw_A <- horizon_sub %>%
+  filter(Horizon == "A") %>%
+  mutate(eff_pct = MA_Efficiency * 100)
+```
+
+B HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "B") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(MA_Efficiency + 0.001), na.rm = TRUE),
+    MAT = unique(MAT)
+  )
+
+mod_site <- lm(mean_log ~ MAT, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+MALIC ACID MAT PANEL
+```{r fig.height=2.25, fig.width=2.69, warning = FALSE}
+p = ggplot(subset(horizon_sub, Horizon %in% c("A", "B")), 
+                 aes(MAT, MA_Efficiency)) + 
+  theme_bw() + geom_jitter(aes(color = Horizon), size = 2, alpha = 0.9) + 
+  
+  # back-transformed trendline
+  geom_line(data = MAT_seq, aes(x = MAT, y = fit),
+            color = "#C2DA86", linetype = 'solid', size = 0.7) +
+  
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 11, color = "black"),
+        panel.grid = element_line(color = 'white'),
+        legend.position = 'none') + 
+  labs(y = "MA efficiency (%)", color = " ") +
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C"));p
+```
+
+
+------------------------
+
+
+#### Oxalic acid
+A HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "A") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(OA_Efficiency + 0.001), na.rm = TRUE),
+    MAT = unique(MAT)
+  )
+
+mod_site <- lm(mean_log ~ MAT, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+B HORIZON
+```{r}
+# site-mean model
+site_dat <- horizon_sub |>
+  dplyr::filter(Horizon == "B") |>
+  dplyr::group_by(Location_knzmerge) |>
+  dplyr::summarise(
+    mean_log = mean(log(OA_Efficiency + 0.001), na.rm = TRUE),
+    MAT = unique(MAT)
+  )
+
+mod_site <- lm(mean_log ~ MAT, data = site_dat)
+summary(mod_site)
+Anova(mod_site)
+```
+
+OXALIC ACID MAT PANEL
+```{r fig.height=2.25, fig.width=2.53, warning = FALSE}
+p = ggplot(subset(horizon_sub, Horizon %in% c("A", "B")), 
+                 aes(MAT, OA_Efficiency)) + 
+  theme_bw() + geom_jitter(aes(color = Horizon), size = 2, alpha = 0.9) + 
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 11, color = "black"),
+        panel.grid = element_line(color = 'white'),
+        legend.position = 'none') + 
+  labs(y = "OA efficiency (%)", color = " ") +
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C"));p
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

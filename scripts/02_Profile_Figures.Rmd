@@ -1,0 +1,1673 @@
+---
+title: "02_Profile_Figures"
+output: html_document
+date: "2025-10-13"
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggpubr)
+```
+
+
+# 1 - Load data files
+```{r}
+Profiles <- read_csv(here("data_inputs/Root_SOC_Profiles.csv"))
+print(Profiles)
+
+AllData <- read_csv(here("data_inputs/ExudateProj_Full.csv"))
+print(AllData)
+```
+
+
+# 2 - Root biomass profiles
+```{r fig.height=3.81, fig.width=3.7, warning = FALSE}
+# COAL CREEK
+ggplot(subset(Profiles, SiteID == "Coal Creek (FRES)"),
+       aes(MidDepth, RootMass_mg_gsoil, color = CoverType, shape = Position, linetype = Position)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + 
+  scale_x_continuous(trans = "reverse", limits = c(88,-10)) + 
+  labs(y = "Root biomass (mg/g dry soil)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("antiquewhite4", "cornflowerblue")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=3.87, warning = FALSE}
+# CALHOUN
+ggplot(subset(Profiles, SiteID == "Calhoun (FRES)"),
+       aes(MidDepth, RootMass_mg_gsoil, color = CoverType, shape = Position, linetype = Position)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + 
+  scale_x_continuous(trans = "reverse", limits = c(199,-14)) + 
+  labs(y = "Root biomass (mg/g dry soil)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("burlywood4", "chartreuse4")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=3.899, message = FALSE, warning = FALSE}
+# REYNOLDS CREEK
+# (only have root biomass data for the live juniper cover type)
+RC_clean <- Profiles %>%
+  filter(SiteID == "Reynolds Creek (FRES)",
+         !is.na(MidDepth),
+         !is.na(RootMass_mg_gsoil))
+subset(Profiles, SiteID == "Reynolds Creek (FRES)")
+
+ggplot(RC_clean,
+       aes(MidDepth, RootMass_mg_gsoil, color = CoverType, group = 1)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + #facet_grid(. ~ Position) +
+  scale_x_continuous(trans = "reverse", limits = c(55,0)) + 
+  labs(y = "Root biomass (mg/g dry soil)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("orangered")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=4.27, warning = FALSE}
+# KONZA PRAIRIE
+# Both Konza sites (land-use sites and heterogeneity plots) combined on one plot
+knz_sub = subset(Profiles, SiteID %in% c("Konza (EPSCoR)", "Konza (FRES)"))
+knz_sub$Position[knz_sub$CoverType %in% c("Crop", "NativePrairie","RegenPrairie")] = "None"
+
+ggplot(knz_sub,
+       aes(MidDepth, RootMass_mg_gsoil, color = CoverType, shape = Position)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + #facet_grid(. ~ Position) +
+  scale_x_continuous(trans = "reverse", limits = c(100,-10)) + 
+  labs(y = "Root biomass (mg/g dry soil)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_shape_manual(values = c(17, 16, 15)) +
+  scale_color_manual(values = c("mediumseagreen", "firebrick", "purple4", "goldenrod3")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=4.08, warning = FALSE}
+# EASTERN KS
+ggplot(subset(Profiles, SiteID == "Ottawa KS (EPSCoR)"),
+       aes(MidDepth, RootMass_mg_gsoil, color = CoverType)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + #facet_grid(. ~ Position) +
+  scale_x_continuous(trans = "reverse", limits = c(100,-10)) + 
+  labs(y = "Root biomass (mg/g dry soil)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("olivedrab4", "lightsalmon3", "midnightblue")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=3.99, warning = FALSE}
+# HAYS KS
+ggplot(subset(Profiles, SiteID == "Hays KS (EPSCoR)"),
+       aes(MidDepth, RootMass_mg_gsoil, color = CoverType)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + #facet_grid(. ~ Position) +
+  scale_x_continuous(trans = "reverse", limits = c(58,-5)) + 
+  labs(y = "Root biomass (mg/g dry soil)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("seagreen4", "rosybrown", "slateblue2")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+
+# 3 - SOC profiles
+```{r fig.height=3.81, fig.width=3.81, warning = FALSE}
+# COAL CREEK
+ggplot(subset(Profiles, SiteID == "Coal Creek (FRES)"),
+       aes(MidDepth, Soil_PercC, color = CoverType, shape = Position, linetype = Position)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + 
+  scale_x_continuous(trans = "reverse", limits = c(88,-10)) + 
+  labs(y = "SOC (%)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("antiquewhite4", "cornflowerblue")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=3.88, warning = FALSE}
+# CALHOUN
+ggplot(subset(Profiles, SiteID == "Calhoun (FRES)"),
+       aes(MidDepth, Soil_PercC, color = CoverType, shape = Position, linetype = Position)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + 
+  scale_x_continuous(trans = "reverse", limits = c(199,-14)) + 
+  labs(y = "SOC (%)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("burlywood4", "chartreuse4")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=4.17, message = FALSE, warning = FALSE}
+# REYNOLDS CREEK
+RC.JD.sub = subset(Profiles, SiteID == "Reynolds Creek (FRES)")
+RC.JD.sub$CoverType_2 = "XX"
+  RC.JD.sub$CoverType_2[RC.JD.sub$ProfileID %in% c("RC-OLJ", "RC-YLJ")] = "Live Juniper"
+  RC.JD.sub$CoverType_2[RC.JD.sub$ProfileID %in% c("RC-YLS", "RC-OLS")] = "Live Sagebrush"
+  RC.JD.sub$CoverType_2[RC.JD.sub$ProfileID %in% c("RC-YCJ", "RC-OCJ")] = "Dead Juniper"
+RC.sum = RC.JD.sub %>% 
+  group_by(MidDepth, CoverType_2) %>% 
+  summarise(SOC.mean = mean(Soil_PercC))
+
+ggplot(RC.sum,
+       aes(MidDepth, SOC.mean, color = CoverType_2)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + #facet_grid(. ~ Position) +
+  scale_x_continuous(trans = "reverse", limits = c(55,0)) + ylim(0.25,2.25) +
+  labs(y = "SOC (%)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("red4", "orangered", "orange")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=4.1, warning = FALSE}
+# KONZA PRAIRIE
+# Both Konza sites (land-use sites and heterogeneity plots) combined on one plot
+knz_sub = subset(Profiles, SiteID %in% c("Konza (EPSCoR)", "Konza (FRES)"))
+knz_sub$Position[knz_sub$CoverType %in% c("Crop", "NativePrairie","RegenPrairie")] = "None"
+
+ggplot(knz_sub,
+       aes(MidDepth, Soil_PercC, color = CoverType)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + #facet_grid(. ~ Position) +
+  scale_x_continuous(trans = "reverse", limits = c(100,-10)) + 
+  labs(y = "SOC (%)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("mediumseagreen", "firebrick", "purple4", "goldenrod3")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=4.1, warning = FALSE}
+# EASTERN KS
+ggplot(subset(Profiles, SiteID == "Ottawa KS (EPSCoR)"),
+       aes(MidDepth, Soil_PercC, color = CoverType)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + #facet_grid(. ~ Position) +
+  scale_x_continuous(trans = "reverse", limits = c(100,-10)) + 
+  labs(y = "SOC (%)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("olivedrab4", "lightsalmon3", "midnightblue")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+```{r fig.height=3.81, fig.width=4.1, warning = FALSE}
+# HAYS KS
+ggplot(subset(Profiles, SiteID == "Hays KS (EPSCoR)"),
+       aes(MidDepth, Soil_PercC, color = CoverType)) + 
+  theme_bw() + geom_line() + coord_flip() +
+  geom_point(size = 2, alpha = 0.8) + #facet_grid(. ~ Position) +
+  scale_x_continuous(trans = "reverse", limits = c(58,-5)) + 
+  labs(y = "SOC (%)", 
+       x = "Depth (cm)", color = " ") +  
+  scale_color_manual(values = c("seagreen4", "rosybrown", "slateblue2")) +
+  theme(axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        strip.background = element_rect(fill = "gray90"),
+        panel.grid = element_line(color = 'white'))
+```
+
+
+# 5 - Nutrient profiles
+Ammonium and nitrate extracted concentrations
+Phosphate extraction efficiency
+```{r fig.height=3.3, fig.width=4.117}
+# COAL CREEK (CC1)
+sub = subset(AllData, ProfileID == "CC1")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,0.023), breaks = c(0, 0.01, 0.02))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "CC1", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# COAL CREEK (CC2)
+sub = subset(AllData, ProfileID == "CC2")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,0.023), breaks = c(0, 0.01, 0.02))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "CC2", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# COAL CREEK (CC3)
+sub = subset(AllData, ProfileID == "CC3")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,0.023), breaks = c(0, 0.01, 0.02))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "CC3", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# COAL CREEK (CC4)
+sub = subset(AllData, ProfileID == "CC4")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,2.05))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "CC4", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# COAL CREEK (CC5)
+sub = subset(AllData, ProfileID == "CC5")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,0.023), breaks = c(0, 0.01, 0.02))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "CC5", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# CALHOUN (R8-H-M)
+sub = subset(AllData, ProfileID == "R8-H-M")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line(aes(group = Extractant), na.rm = T) + 
+  geom_point(fill = "white", size = 2, na.rm = T) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "R8-H-M", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# CALHOUN (R8-H-R)
+sub = subset(AllData, ProfileID == "R8-H-R")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,0.023), breaks = c(0, 0.01, 0.02))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "R8-H-R", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# CALHOUN (R8-P-M)
+sub = subset(AllData, ProfileID == "R8-P-M")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,0.023), breaks = c(0, 0.01, 0.02))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) +
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "R8-P-M", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# CALHOUN (R8-P-R)
+sub = subset(AllData, ProfileID == "R8-P-R")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "R8-P-R", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117, message = FALSE}
+# REYNOLDS CREEK (LIVE JUNIPER)
+RC.JD.sub = subset(AllData, SiteID == "Reynolds Creek (FRES)")
+RC.JD.sub$CoverType_2 = "XX"
+  RC.JD.sub$CoverType_2[RC.JD.sub$CoverType %in% 
+                          c("Young live juniper", "Old live juniper")] = "Live Juniper"
+  RC.JD.sub$CoverType_2[RC.JD.sub$CoverType %in% 
+                          c("Young live sage", "Old live sage")] = "Live Sagebrush"
+  RC.JD.sub$CoverType_2[RC.JD.sub$CoverType %in% 
+                          c("Young cut juniper", "Old cut juniper")] = "Dead Juniper"
+RC.sum = RC.JD.sub %>% 
+  group_by(MidDepth, CoverType_2, Extractant) %>% 
+  summarise(NH4 = mean(ugNH4.N_gDrySoil, na.rm = T),
+            NO3 = mean(ugNO3.N_gDrySoil, na.rm = T),
+            P_Efficiency = mean(P_Efficiency))
+
+sub = subset(RC.sum, CoverType_2 == "Live Juniper")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, NH4, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, NO3, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "RCEW-LiveJuniper", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# REYNOLDS CREEK (DEAD JUNIPER)
+sub = subset(RC.sum, CoverType_2 == "Dead Juniper")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, NH4, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, NO3, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "RCEW-DeadJuniper", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# REYNOLDS CREEK (SAGEBRUSH)
+sub = subset(RC.sum, CoverType_2 == "Live Sagebrush")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, NH4, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, NO3, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "RCEW-LiveSage", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA HET. PLOTS (KZL1-S)
+sub = subset(AllData, ProfileID == "KZL1-S")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "KZL1-S", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA HET. PLOTS (KZL2-S)
+sub = subset(AllData, ProfileID == "KZL2-S")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "KZL2-S", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA HET. PLOTS (KZL1-C)
+sub = subset(AllData, ProfileID == "KZL1-C")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,0.023), breaks = c(0, 0.01, 0.02))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "KZL1-C", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA HET. PLOTS (KZL2-C)
+sub = subset(AllData, ProfileID == "KZL2-C")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "KZL2-C", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA LAND-USE PLOTS (KNZ-N)
+sub = subset(AllData, ProfileID == "KNZ-N")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse", limits = c(60,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse", limits = c(60,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse", limits = c(25,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "KNZ-N", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA LAND-USE PLOTS (KNZ-P)
+sub = subset(AllData, ProfileID == "KNZ-P")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse", limits = c(60,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse", limits = c(60,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse", limits = c(60,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "KNZ-P", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA LAND-USE PLOTS (KNZ-A)
+sub = subset(AllData, ProfileID == "KNZ-A")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse", limits = c(60,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse", limits = c(60,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + ylim(0,13)
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse", limits = c(60,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "KNZ-A", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA LAND-USE PLOTS (EKS-N)
+sub = subset(AllData, ProfileID == "EKS-N")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse", limits = c(25,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "EKS-N", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.117}
+# KONZA LAND-USE PLOTS (EKS-P)
+sub = subset(AllData, ProfileID == "EKS-P")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none') + 
+  scale_y_continuous(limits = c(0,0.05),
+                     breaks = c(0, 0.02, 0.04))
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse", limits = c(25,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "EKS-P", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# KONZA LAND-USE PLOTS (EKS-A)
+sub = subset(AllData, ProfileID == "EKS-A")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "EKS-A", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# KONZA LAND-USE PLOTS (HAY-N)
+sub = subset(AllData, ProfileID == "HAY-N")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse", limits = c(25,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "HAY-N", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# KONZA LAND-USE PLOTS (HAY-P)
+sub = subset(AllData, ProfileID == "HAY-P")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "HAY-P", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+```{r fig.height=3.3, fig.width=4.2}
+# KONZA LAND-USE PLOTS (HAY-A)
+sub = subset(AllData, ProfileID == "HAY-A")
+
+# Ammonium
+NH4 = ggplot(sub, aes(MidDepth, ugNH4.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Ammonium') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+# Nitrate
+NO3 = ggplot(sub, aes(MidDepth, ugNO3.N_gDrySoil, 
+                       color = Extractant, shape = Extractant)) + 
+  theme_bw() + geom_line() + geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + labs(title = 'Nitrate') +
+  scale_x_continuous(trans = "reverse") + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_blank(),
+        strip.text = element_text(size = 11),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = 'none')
+
+annotate_figure(ggarrange(NH4, NO3, ncol = 2),
+                left = text_grob("Depth (cm)", rot = 90, vjust = 0.75),
+                bottom = text_grob("Exudate-extractable N (ug/g)", vjust = 0.25))
+
+# Phosphate
+ggplot(sub, aes(MidDepth, P_Efficiency*100, 
+                       color = Extractant,
+                       shape = Extractant)) + 
+  theme_bw() + geom_line() + 
+  geom_point(fill = "white", size = 2) +
+  scale_color_manual(values = c("deeppink4", "midnightblue", "darkgoldenrod3")) + 
+  scale_shape_manual(values = c(22, 21, 23)) + 
+  scale_x_continuous(trans = "reverse", limits = c(25,0)) + coord_flip() +
+  theme(axis.text = element_text(size = 11, color = "black"),
+        axis.title = element_text(size = 12),
+        strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size = 10.5, face = "bold"),
+        legend.position = "right",
+        legend.margin = margin(r = 60)) + 
+  labs(x = "Depth (cm)", color = " ",
+       title = "HAY-A", shape = " ",
+       y = "P extraction efficiency (%)")
+```
+
+
+
+

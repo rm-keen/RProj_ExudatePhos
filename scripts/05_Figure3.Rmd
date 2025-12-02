@@ -1,0 +1,210 @@
+---
+title: "05_Figure3"
+output: html_document
+date: "2025-10-13"
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggpubr)
+library(lmerTest)
+library(car)
+library(emmeans)
+```
+
+Set contrasts
+```{r message = FALSE, warning = FALSE}
+options(contrasts = c("contr.sum","contr.poly"))
+```
+
+
+# 1 - Load data files
+```{r}
+horizon_sub <- read_rds(here("data_intermediate", "horizon_sub.rds"))
+print(horizon_sub)
+```
+
+Function to plot model diagnostics
+```{r}
+lmm.check <- function(mod) {
+  par(mfrow = c(1, 3))
+  # 1. Residuals vs Fitted
+    plot(fitted(mod), resid(mod),
+        main = " ", xlab = "Fitted Values", ylab = "Residuals")
+    abline(h = 0, col = "darkred", lwd = 2, lty = 2)
+  # 2. Histogram of residuals
+    hist(residuals(mod), main = " ", xlab = expression(hat(epsilon)))
+    abline(v = 0, col = "darkred", lwd = 2)
+  # 3. Q-Q plot
+    qqnorm(residuals(mod), main = " ")
+    qqline(residuals(mod), col = "darkred", lwd = 2)
+}
+```
+
+Combine Konza sites within a new 'Location' column
+```{r}
+# combine konza sites
+horizon_sub$Location_knzmerge = "XX"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "Calhoun"] <- "Calhoun"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "Coal Creek"] <- "Coal Creek"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "Reynolds Creek"] <- "Reynolds Creek"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "EKS"] <- "EKS"
+horizon_sub$Location_knzmerge[horizon_sub$Location == "HAY"] <- "HAY"
+horizon_sub$Location_knzmerge[horizon_sub$Location %in% c("Konza", "KNZ")] <- "Konza"
+```
+
+
+# 2 - Figure 3
+Calculate overall mean values for each exudate type
+```{r}
+h_means_oa <- horizon_sub %>%
+  mutate(
+    Eff_pct_oa = OA_Efficiency * 100  
+  ) %>%
+  group_by(HorizonFlip) %>%
+  summarise(
+    mean_eff = mean(Eff_pct_oa, na.rm = TRUE),
+    sd_eff = sd(Eff_pct_oa, na.rm = TRUE),
+    se_eff   = sd(Eff_pct_oa, na.rm = TRUE) / sqrt(dplyr::n()),
+    .groups = "drop"
+  ) %>%
+  mutate(h_num = as.numeric(HorizonFlip))
+
+h_means_ma <- horizon_sub %>%
+  mutate(
+    Eff_pct_ma = MA_Efficiency * 100   
+  ) %>%
+  group_by(HorizonFlip) %>%
+  summarise(
+    mean_eff = mean(Eff_pct_ma, na.rm = TRUE),
+    sd_eff = sd(Eff_pct_ma, na.rm = TRUE),
+    se_eff   = sd(Eff_pct_ma, na.rm = TRUE) / sqrt(dplyr::n()),
+    .groups = "drop"
+  ) %>%
+  mutate(h_num = as.numeric(HorizonFlip))
+
+h_means_ap <- horizon_sub %>%
+  mutate(
+    Eff_pct_ap = AP_Efficiency * 100  
+  ) %>%
+  group_by(HorizonFlip) %>%
+  summarise(
+    mean_eff = mean(Eff_pct_ap, na.rm = TRUE),
+    sd_eff = sd(Eff_pct_ap, na.rm = TRUE),
+    se_eff   = sd(Eff_pct_ap, na.rm = TRUE) / sqrt(dplyr::n()),
+    .groups = "drop"
+  ) %>%
+  mutate(h_num = as.numeric(HorizonFlip))
+```
+
+```{r fig.height=4.2, fig.width=7, warning = FALSE}
+p1 = ggplot() + theme_bw() + coord_flip() + 
+  geom_jitter(data = horizon_sub, size = 2, alpha = 0.8,
+               aes(HorizonFlip, y = OA_Efficiency*100, color = Location_knzmerge), 
+              width = 0.1, height = 0.1) +
+  geom_pointrange(data = h_means_oa, aes(x = h_num, y = mean_eff, 
+                                      ymin = mean_eff - se_eff,
+                                      ymax = mean_eff + se_eff),
+                  color = "black", size = 0.8, pch = 17) +
+  geom_line(data = h_means_oa, aes(x = h_num, y = mean_eff),
+            color = "black", alpha = 0.6) +
+  scale_color_manual(values = c("#BFBFBF", "#2C3E6C", "#C2DA86", "#E2A97E", "#B93E25", "#91BFDB")) +
+  theme(axis.text.x = element_text(size = 11, color = "black"),
+        axis.text.y = element_text(size = 11, color = "black"),
+        axis.title.y = element_text(size = 12.5, margin = margin(r = 11.5)),
+        axis.title.x = element_text(size = 12.5),
+        plot.title = element_text(size = 11, face = "bold"),
+        panel.grid = element_line(color = 'white'),
+        panel.grid.major.y = element_line(color = 'gray97'),
+        strip.text = element_text(size = 10.5),
+        strip.background = element_blank()) +
+  labs(y = "P extraction efficiency (%)", x = "Horizon", title = "Oxalic acid")
+
+p2 = ggplot() + theme_bw() + coord_flip() + 
+  geom_jitter(data = horizon_sub, size = 2, alpha = 0.8,
+               aes(HorizonFlip, y = MA_Efficiency*100, color = Location_knzmerge), 
+              width = 0.1, height = 0.1) +
+  geom_pointrange(data = h_means_ma, aes(x = h_num, y = mean_eff, 
+                                      ymin = mean_eff - se_eff,
+                                      ymax = mean_eff + se_eff),
+                  color = "black", size = 0.8, pch = 17) +
+  geom_line(data = h_means_ma, aes(x = h_num, y = mean_eff),
+            color = "black", alpha = 0.6) +
+  scale_color_manual(values = c("#BFBFBF", "#2C3E6C", "#C2DA86", "#E2A97E", "#B93E25", "#91BFDB")) +
+  theme(axis.text.x = element_text(size = 11, color = "black"),
+        axis.text.y = element_text(size = 11, color = "black"),
+        axis.title.y = element_text(size = 12.5, margin = margin(r = 11.5)),
+        axis.title.x = element_text(size = 12.5),
+        plot.title = element_text(size = 11, face = "bold"),
+        panel.grid = element_line(color = 'white'),
+        panel.grid.major.y = element_line(color = 'gray97'),
+        strip.text = element_text(size = 10.5),
+        strip.background = element_blank()) +
+  labs(y = "P extraction efficiency (%)", x = "Horizon", title = "Malic acid")
+
+p3 = ggplot() + theme_bw() + coord_flip() + 
+  geom_jitter(data = horizon_sub, size = 2, alpha = 0.8,
+               aes(HorizonFlip, y = AP_Efficiency*100, color = Location_knzmerge), 
+              width = 0.1, height = 0.1) +
+  geom_pointrange(data = h_means_ap, aes(x = h_num, y = mean_eff, 
+                                      ymin = mean_eff - se_eff,
+                                      ymax = mean_eff + se_eff),
+                  color = "black", size = 0.8, pch = 17) +
+  geom_line(data = h_means_ap, aes(x = h_num, y = mean_eff),
+            color = "black", alpha = 0.6) +
+  scale_color_manual(values = c("#BFBFBF", "#2C3E6C", "#C2DA86", "#E2A97E", "#B93E25", "#91BFDB")) +
+  theme(axis.text.x = element_text(size = 11, color = "black"),
+        axis.text.y = element_text(size = 11, color = "black"),
+        axis.title.y = element_text(size = 12.5, margin = margin(r = 11.5)),
+        axis.title.x = element_text(size = 12.5),
+        plot.title = element_text(size = 11, face = "bold"),
+        panel.grid = element_line(color = 'white'),
+        panel.grid.major.y = element_line(color = 'gray97'),
+        strip.text = element_text(size = 10.5),
+        strip.background = element_blank()) +
+  labs(y = "P extraction efficiency (%)", x = "Horizon", title = "APase")
+
+plot = ggarrange(p1, p2, p3, nrow = 1, common.legend = T);plot
+```
+
+
+# 3 - LMMs
+Oxalic Acid
+```{r fig.height=2.5, fig.width=7}
+mod <- lmer(log(OA_Efficiency + 0.001) ~ Horizon + (1 | Location_knzmerge / ProfileID),
+            data = horizon_sub)
+
+summary(mod)
+Anova(mod, type = 3)
+#lmm.check(mod)
+```
+
+Malic Acid
+```{r fig.height=2.5, fig.width=7}
+mod <- lmer(log(MA_Efficiency + 0.001) ~ Horizon + (1 | Location_knzmerge / ProfileID),
+            data = horizon_sub)
+
+summary(mod)
+Anova(mod, type = 3)
+#lmm.check(mod)
+emm <- emmeans(mod, ~ Horizon)
+pairs(emm, adjust = "tukey")
+```
+
+APase
+```{r fig.height=2.5, fig.width=7}
+mod <- lmer(log(AP_Efficiency + 0.001) ~ Horizon + (1 | Location_knzmerge / ProfileID),
+            data = horizon_sub)
+
+summary(mod)
+Anova(mod, type = 3)
+#lmm.check(mod)
+emm <- emmeans(mod, ~ Horizon)
+pairs(emm, adjust = "tukey")
+```
+
+
+
+
+

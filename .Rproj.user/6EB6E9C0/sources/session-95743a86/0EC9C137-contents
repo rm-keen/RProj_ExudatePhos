@@ -1,0 +1,705 @@
+---
+title: "08_SuppFigures_1"
+output: html_document
+date: "2025-10-13"
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggpubr)
+library(lmerTest)
+library(car)
+library(emmeans)
+library(MuMIn)
+```
+
+Set contrasts
+```{r message = FALSE, warning = FALSE}
+options(contrasts = c("contr.sum","contr.poly"))
+```
+
+
+# 1 - Load data files
+```{r}
+AllData <- read_csv(here("data_inputs/ExudateProj_Full.csv"))
+print(AllData)
+```
+
+Function to plot model diagnostics
+```{r}
+lmm.check <- function(mod) {
+  par(mfrow = c(1, 3))
+  # 1. Residuals vs Fitted
+    plot(fitted(mod), resid(mod),
+        main = " ", xlab = "Fitted Values", ylab = "Residuals")
+    abline(h = 0, col = "darkred", lwd = 2, lty = 2)
+  # 2. Histogram of residuals
+    hist(residuals(mod), main = " ", xlab = expression(hat(epsilon)))
+    abline(v = 0, col = "darkred", lwd = 2)
+  # 3. Q-Q plot
+    qqnorm(residuals(mod), main = " ")
+    qqline(residuals(mod), col = "darkred", lwd = 2)
+}
+```
+
+
+-----------------------
+
+
+# 2 - Calculate extractable N:P ratios
+Ratios of exudate-extractable N (ammonium, nitrate, and total inorganic N) 
+to exudate-extractable P (phosphate) for each exudate type.
+```{r}
+# Ammonium only
+AllData$Extr_NH4vP = AllData$ugNH4.N_gDrySoil / AllData$ugPO4.P_gDrySoil
+  AllData$Extr_NH4vP[is.nan(AllData$Extr_NH4vP)]<-NA           # Remove any 'NaN' values
+  AllData$Extr_NH4vP[is.infinite(AllData$Extr_NH4vP)]<-NA      # Remove any 'Inf' values
+  
+# Nitrate only
+AllData$Extr_NO3vP = AllData$ugNO3.N_gDrySoil / AllData$ugPO4.P_gDrySoil
+  AllData$Extr_NO3vP[is.nan(AllData$Extr_NO3vP)]<-NA           # Remove any 'NaN' values
+  AllData$Extr_NO3vP[is.infinite(AllData$Extr_NO3vP)]<-NA      # Remove any 'Inf' values
+
+# Total inorganic N (ammonium + nitrate)
+AllData$Extr_N_TotvP = (AllData$ugNH4.N_gDrySoil + AllData$ugNO3.N_gDrySoil) / AllData$ugPO4.P_gDrySoil
+  AllData$Extr_N_TotvP[is.nan(AllData$Extr_N_TotvP)]<-NA       # Remove any 'NaN' values
+  AllData$Extr_N_TotvP[is.infinite(AllData$Extr_N_TotvP)]<-NA  # Remove any 'Inf' values
+```
+
+
+-----------------------
+
+
+# 3 - Organize data
+Separate out the crop sites - high NO3 values from fertilization
+```{r message = FALSE}
+AllData$Crop = "Natural"
+AllData$Crop[AllData$ProfileID %in% c("KNZ-A", "EKS-A", "HAY-A")] = "Crop"
+AllData$Crop = factor(AllData$Crop, levels = c("Natural", "Crop"))
+
+# Select 'natural' sites only
+AllData_sub = subset(AllData, Extractant %in% c("Oxalic Acid", "Malic Acid", "Apase") & 
+                Crop == 'Natural' & Horizon %in% c("A", "B"))
+
+# Summarize data
+summary = AllData_sub %>%
+  group_by(Extractant, Horizon) %>%
+  summarise(NP = mean(Extr_N_TotvP, na.rm = T),
+            SD_NP = sd(Extr_N_TotvP, na.rm = T),
+            Count = n(),
+            SE_NP = SD_NP/sqrt(Count))
+
+# Set extractant and horizon as factors
+summary$Extractant = factor(summary$Extractant, levels = c("Apase", "Malic Acid", "Oxalic Acid"))
+summary$Horizon = factor(summary$Horizon)
+
+summary$NP[is.nan(summary$NP)]<-NA # Remove 'NaN' values
+
+# Remove erroneously high data points
+AllData_sub <- AllData_sub %>%
+  filter(is.na(Extr_NH4vP) | Extr_NH4vP <= 25)
+```
+
+Log transformations with slight offset to deal with zero values
+```{r}
+AllData_sub$log_Extr_N_TotvP = log(AllData_sub$Extr_N_TotvP+0.001)
+AllData_sub$log_Extr_NH4vP = log(AllData_sub$Extr_NH4vP+0.001)
+AllData_sub$log_Extr_NO3vP = log(AllData_sub$Extr_NO3vP+0.001)
+```
+
+
+-----------------------
+
+
+# 4 - Figure S3
+## Total inorganic N
+```{r fig.height=3, fig.width=5}
+ggplot(AllData_sub, aes(Extractant, Extr_N_TotvP, color = Horizon, fill = Horizon)) + 
+  geom_hline(yintercept = 1, color = 'gray', linewidth = 1, alpha = 0.6) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9),
+             size = 2, alpha = 0.6) + theme_bw() + 
+  geom_boxplot(position = position_dodge(width = 0.9), 
+                            width = 0.7, outlier.shape = NA, alpha = 0.8) +
+  scale_color_manual(values = c("#A8CA52", "#1C2744")) +
+  scale_fill_manual(values = c("#C8DE92", "#2C3E6C")) +
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "black",
+               position = position_dodge(width = 0.9)) +
+  theme(axis.text = element_text(color = 'black', size = 11),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12, margin = margin(r = 8.4)),
+        legend.text = element_text(size = 11),
+        panel.grid = element_blank()) + 
+  labs(y = "Exudate extractable N:P", x = "Exudate Type", 
+       color = "Horizon", fill = "Horizon")
+```
+
+A horizon
+```{r fig.height=2.75, fig.width=8}
+mod.A = lmer(log_Extr_N_TotvP ~ Extractant + (1|SiteID), data = subset(AllData_sub, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+emmeans(mod.A, pairwise ~ Extractant, adjust = "tukey")
+#lmm.check(mod.A)
+```
+
+B horizon
+```{r fig.height=2.75, fig.width=8}
+mod.B = lmer(log_Extr_N_TotvP ~ Extractant + (1|SiteID), data = subset(AllData_sub, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+emmeans(mod.B, pairwise ~ Extractant, adjust = "tukey")
+#lmm.check(mod.B)
+```
+
+
+## Ammonium only
+```{r fig.height=3, fig.width=5}
+ggplot(AllData_sub, aes(Extractant, Extr_NH4vP, color = Horizon, fill = Horizon)) + 
+  geom_hline(yintercept = 1, color = 'gray', linewidth = 1, alpha = 0.6) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9),
+             size = 2, alpha = 0.6) + theme_bw() + 
+  geom_boxplot(position = position_dodge(width = 0.9), 
+                            width = 0.7, outlier.shape = NA, alpha = 0.8) +
+  scale_color_manual(values = c("#A8CA52", "#1C2744")) +
+  scale_fill_manual(values = c("#C8DE92", "#2C3E6C")) +
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "black",
+               position = position_dodge(width = 0.9)) +
+  theme(axis.text = element_text(color = 'black', size = 11),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12, margin = margin(r = 8.4)),
+        legend.text = element_text(size = 11),
+        panel.grid = element_blank()) + 
+  labs(y = "Exudate extractable N:P", x = "Exudate Type", 
+       color = "Horizon", fill = "Horizon")
+```
+
+A horizon
+```{r fig.height=2.75, fig.width=8}
+mod.A = lmer(log_Extr_NH4vP ~ Extractant + (1|SiteID), data = subset(AllData_sub, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+emmeans(mod.A, pairwise ~ Extractant, adjust = "tukey")
+#lmm.check(mod.A)
+```
+
+B horizon
+```{r fig.height=2.75, fig.width=8}
+mod.B = lmer(log_Extr_NH4vP ~ Extractant + (1|SiteID), data = subset(AllData_sub, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+emmeans(mod.B, pairwise ~ Extractant, adjust = "tukey")
+#lmm.check(mod.B)
+```
+
+
+## Nitrate only
+```{r fig.height=2.75, fig.width=5}
+ggplot(AllData_sub, aes(Extractant, Extr_NO3vP, color = Horizon, fill = Horizon)) + 
+  geom_hline(yintercept = 1, color = 'gray', linewidth = 1, alpha = 0.6) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9),
+             size = 2, alpha = 0.6) + theme_bw() + #ylim(0,2.1) +
+  geom_boxplot(position = position_dodge(width = 0.9), 
+                            width = 0.7, outlier.shape = NA, alpha = 0.8) +
+  scale_y_continuous(limits = c(0,6.25),
+                     breaks = c(0, 1, 2, 3, 4, 5, 6)) +
+  scale_color_manual(values = c("#A8CA52", "#1C2744")) +
+  scale_fill_manual(values = c("#C8DE92", "#2C3E6C")) +
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "black",
+               position = position_dodge(width = 0.9)) +
+  theme(axis.text = element_text(color = 'black', size = 11),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12, margin = margin(r = 8.4)),
+        legend.text = element_text(size = 11),
+        panel.grid = element_blank()) + 
+  labs(y = "Exudate extractable N:P", x = "Exudate Type", 
+       color = "Horizon", fill = "Horizon")
+```
+
+A horizon
+```{r fig.height=2.75, fig.width=8}
+mod.A = lmer(log_Extr_NO3vP ~ Extractant + (1|SiteID), data = subset(AllData_sub, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+emmeans(mod.A, pairwise ~ Extractant, adjust = "tukey")
+#lmm.check(mod.A)
+```
+
+B horizon
+```{r fig.height=2.75, fig.width=8}
+mod.B = lmer(log_Extr_NO3vP ~ Extractant + (1|SiteID), data = subset(AllData_sub, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+emmeans(mod.B, pairwise ~ Extractant, adjust = "tukey")
+#lmm.check(mod.B)
+```
+
+
+-----------------------
+
+
+# 5 - Figure S4
+```{r message = FALSE}
+## Abbreviate extractant names and put in wide format
+AllData_sub <- AllData_sub %>%
+  mutate(Extractant = str_trim(Extractant),
+         Extractant_abbr = case_when(
+            Extractant == "Apase" ~ "AP",
+            Extractant == "Malic Acid" ~ "MA",
+            Extractant == "Oxalic Acid" ~ "OA",
+            TRUE ~ Extractant))
+
+AllData_wide <- AllData_sub %>%
+  pivot_wider(
+    id_cols = c(SiteID, ProfileID, MidDepth, Horizon, Location),
+    names_from = Extractant_abbr,
+    values_from = c(Extr_N_TotvP, Extr_NH4vP, Extr_NO3vP),
+    names_glue = "{.value}_{Extractant_abbr}"
+  )
+
+# Calculate horizon averages for bivariate plots
+wide_horizon = AllData_wide %>%
+  group_by(SiteID, ProfileID, Horizon) %>%
+  summarise(Extr_N_TotvP_OA = mean(Extr_N_TotvP_OA, na.rm = T),
+            Extr_N_TotvP_AP = mean(Extr_N_TotvP_AP, na.rm = T),
+            Extr_N_TotvP_MA = mean(Extr_N_TotvP_MA, na.rm = T),
+            Extr_NH4vP_OA = mean(Extr_NH4vP_OA, na.rm = T),
+            Extr_NH4vP_AP = mean(Extr_NH4vP_AP, na.rm = T),
+            Extr_NH4vP_MA = mean(Extr_NH4vP_MA, na.rm = T),
+            Extr_NO3vP_OA = mean(Extr_NO3vP_OA, na.rm = T),
+            Extr_NO3vP_AP = mean(Extr_NO3vP_AP, na.rm = T),
+            Extr_NO3vP_MA = mean(Extr_NO3vP_MA, na.rm = T))
+
+# Removing NaN values
+NaN_cols <- c("Extr_N_TotvP_OA", "Extr_N_TotvP_AP", "Extr_N_TotvP_MA",
+              "Extr_NH4vP_OA", "Extr_NH4vP_AP", "Extr_NH4vP_MA",
+              "Extr_NO3vP_OA", "Extr_NO3vP_AP", "Extr_NO3vP_MA")
+wide_horizon[NaN_cols] <- lapply(wide_horizon[NaN_cols], function(x) {
+  x[is.nan(x)] <- NA
+  return(x)
+})
+```
+
+Log transformations with slight offset to deal with zero values
+```{r}
+wide_horizon$log_totN_NP_OA = log(wide_horizon$Extr_N_TotvP_OA+0.001)
+wide_horizon$log_totN_NP_AP = log(wide_horizon$Extr_N_TotvP_AP+0.001)
+wide_horizon$log_totN_NP_MA = log(wide_horizon$Extr_N_TotvP_MA+0.001)
+  
+wide_horizon$log_NH4_NP_OA = log(wide_horizon$Extr_NH4vP_OA+0.001)
+wide_horizon$log_NH4_NP_AP = log(wide_horizon$Extr_NH4vP_AP+0.001)
+wide_horizon$log_NH4_NP_MA = log(wide_horizon$Extr_NH4vP_MA+0.001)
+  
+wide_horizon$log_NO3_NP_OA = log(wide_horizon$Extr_NO3vP_OA+0.001)
+wide_horizon$log_NO3_NP_AP = log(wide_horizon$Extr_NO3vP_AP+0.001)
+wide_horizon$log_NO3_NP_MA = log(wide_horizon$Extr_NO3vP_MA+0.001)
+```
+
+
+## Oxalic acid vs. APase
+```{r fig.height=2.7, fig.width=3.74}
+# Total inorganic N
+ggplot(wide_horizon, 
+            aes(log_totN_NP_OA, log_totN_NP_AP, color = Horizon, fill = Horizon)) +  
+  geom_smooth(method = 'lm', se = T, alpha = 0.1) + xlim(-4.3,1.4) +
+  geom_point(alpha = 0.7, size = 2) + theme_bw() +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5),
+        axis.title.y = element_text(margin = margin(r = 12))) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(OA extractable N:P)",
+       y = "log(AP extractable N:P")
+
+# Ammonium only
+ggplot(wide_horizon, 
+            aes(log_NH4_NP_OA, log_NH4_NP_AP, color = Horizon, fill = Horizon)) +  
+  geom_smooth(data = subset(wide_horizon, Horizon == "A"),
+              method = 'lm', se = T, alpha = 0.1) + 
+  geom_smooth(data = subset(wide_horizon, Horizon == "B"),
+              method = 'lm', se = T, alpha = 0.1, linetype = 'dashed') + 
+  geom_point(alpha = 0.7, size = 2) + theme_bw() + xlim(-4.1,1.3) +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5),
+        axis.title.y = element_text(margin = margin(r = 12))) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(OA extractable N:P)",
+       y = "log(AP extractable N:P")
+
+# Nitrate only
+ggplot(wide_horizon, 
+            aes(log_NO3_NP_OA, log_NO3_NP_AP, color = Horizon, fill = Horizon)) +  
+  geom_smooth(data = subset(wide_horizon, Horizon == "A"), 
+              method = 'lm', se = T, alpha = 0.1) + xlim(-7,-3) +
+  geom_point(alpha = 0.7, size = 2) + theme_bw() +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5)) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(OA extractable N:P)",
+       y = "log(AP extractable N:P")
+```
+
+
+------------------------
+
+
+## Malic acid vs. Oxalic acid
+```{r fig.height=2.7, fig.width=3.74}
+# Total inorganic N
+ggplot(wide_horizon, 
+            aes(log_totN_NP_MA, log_totN_NP_OA, color = Horizon, fill = Horizon)) +  
+  geom_smooth(method = 'lm', se = T, alpha = 0.1) + xlim(-3.5,2.4) + ylim(-6.2,2.3) +
+  geom_point(alpha = 0.7, size = 2) + theme_bw() +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5)) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(MA extractable N:P)",
+       y = "log(OA extractable N:P")
+
+# Ammonium only
+ggplot(wide_horizon, 
+            aes(log_NH4_NP_MA, log_NH4_NP_OA, color = Horizon, fill = Horizon)) +  
+  geom_smooth(method = 'lm', se = T, alpha = 0.1) + xlim(-3.5,2.4) + ylim(-6.2,2.3) +
+  geom_point(alpha = 0.7, size = 2) + theme_bw() +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5)) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(MA extractable N:P)",
+       y = "log(OA extractable N:P")
+
+# Nitrate only
+ggplot(wide_horizon, 
+            aes(log_NO3_NP_MA, log_NO3_NP_OA, color = Horizon, fill = Horizon)) +  
+  geom_smooth(data = subset(wide_horizon, Horizon == "A"),
+              method = 'lm', se = T, alpha = 0.1) + 
+  geom_point(alpha = 0.7, size = 2) + theme_bw() +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5)) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(MA extractable N:P)",
+       y = "log(OA extractable N:P")
+```
+
+
+------------------------
+
+
+## APase vs. Malic Acid
+```{r fig.height=2.7, fig.width=3.74}
+# Total inorganic N
+ggplot(wide_horizon, 
+            aes(log_totN_NP_AP, log_totN_NP_MA, color = Horizon, fill = Horizon)) +  
+  geom_smooth(method = 'lm', se = T, alpha = 0.1) + xlim(-2.7,2.5) +
+  geom_point(alpha = 0.7, size = 2) + theme_bw() +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5),
+        axis.title.y = element_text(margin = margin(r = 12))) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(AP extractable N:P)",
+       y = "log(MA extractable N:P")
+
+# Ammonium only
+ggplot(wide_horizon, 
+            aes(log_NH4_NP_AP, log_NH4_NP_MA, color = Horizon, fill = Horizon)) +  
+  geom_smooth(data = subset(wide_horizon, Horizon == "A"),
+              method = 'lm', se = T, alpha = 0.1) + 
+  geom_smooth(data = subset(wide_horizon, Horizon == "B"),
+              method = 'lm', se = T, alpha = 0.1, linetype = 'dashed') + 
+  geom_point(alpha = 0.7, size = 2) + theme_bw() + xlim(-2.7,2.5) +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5),
+        axis.title.y = element_text(margin = margin(r = 12))) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(AP extractable N:P)",
+       y = "log(MA extractable N:P")
+
+# Nitrate only
+ggplot(wide_horizon, 
+            aes(log_NO3_NP_AP, log_NO3_NP_MA, color = Horizon, fill = Horizon)) +  
+  geom_smooth(data = subset(wide_horizon, Horizon == "A"),
+              method = 'lm', se = T, alpha = 0.1) + 
+  geom_point(alpha = 0.7, size = 2) + theme_bw() +
+  theme(panel.grid = element_line(color = 'white'),
+        axis.text = element_text(color = 'black', size = 11.5),
+        axis.title.y = element_text(margin = margin(r = 12))) + 
+  scale_color_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  scale_fill_manual(values = c("#C2DA86", "#2C3E6C")) + 
+  labs(x = "log(AP extractable N:P)",
+       y = "log(MA extractable N:P")
+```
+
+
+------------------
+
+## Linear mixed effects models
+### Total inorganic N
+Oxalic acid vs. APase
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_totN_NP_AP ~ log_totN_NP_OA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_totN_NP_AP, log_totN_NP_OA)
+print(cor(sub$log_totN_NP_AP, sub$log_totN_NP_OA)) 
+```
+
+```{r fig.height=2.75, fig.width=8}
+## B horizon
+mod.B = lmer(log_totN_NP_AP ~ log_totN_NP_OA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+r.squaredGLMM(mod.B)
+#lmm.check(mod.B)
+
+sub = subset(wide_horizon, Horizon %in% c("B"))
+sub <- sub %>% drop_na(log_totN_NP_AP, log_totN_NP_OA)
+print(cor(sub$log_totN_NP_AP, sub$log_totN_NP_OA))
+```
+
+
+Oxalic acid vs. Malic acid
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_totN_NP_OA ~ log_totN_NP_MA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_totN_NP_MA, log_totN_NP_OA)
+print(cor(sub$log_totN_NP_MA, sub$log_totN_NP_OA)) 
+```
+
+```{r fig.height=2.75, fig.width=8}
+## B horizon
+mod.B = lmer(log_totN_NP_OA ~ log_totN_NP_MA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+r.squaredGLMM(mod.B)
+#lmm.check(mod.B)
+
+sub = subset(wide_horizon, Horizon %in% c("B"))
+sub <- sub %>% drop_na(log_totN_NP_MA, log_totN_NP_OA)
+print(cor(sub$log_totN_NP_MA, sub$log_totN_NP_OA))
+```
+
+
+Malic acid vs. APase
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_totN_NP_MA ~ log_totN_NP_AP + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_totN_NP_MA, log_totN_NP_AP)
+print(cor(sub$log_totN_NP_MA, sub$log_totN_NP_AP))
+```
+
+```{r fig.height=2.75, fig.width=8}
+## B horizon
+mod.B = lmer(log_totN_NP_MA ~ log_totN_NP_AP + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+r.squaredGLMM(mod.B)
+#lmm.check(mod.B)
+
+sub = subset(wide_horizon, Horizon %in% c("B"))
+sub <- sub %>% drop_na(log_totN_NP_MA, log_totN_NP_AP)
+print(cor(sub$log_totN_NP_MA, sub$log_totN_NP_AP)) 
+```
+
+
+### Ammonium only
+Oxalic acid vs. APase
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_NH4_NP_AP ~ log_NH4_NP_OA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_NH4_NP_OA, log_NH4_NP_AP)
+print(cor(sub$log_NH4_NP_OA, sub$log_NH4_NP_AP))
+```
+
+```{r fig.height=2.75, fig.width=8}
+## B horizon
+mod.B = lmer(log_NH4_NP_AP ~ log_NH4_NP_OA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+r.squaredGLMM(mod.B)
+#lmm.check(mod.B)
+
+sub = subset(wide_horizon, Horizon %in% c("B"))
+sub <- sub %>% drop_na(log_NH4_NP_OA, log_NH4_NP_AP)
+print(cor(sub$log_NH4_NP_OA, sub$log_NH4_NP_AP)) 
+```
+
+
+Oxalic acid vs. Malic acid
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_NH4_NP_OA ~ log_NH4_NP_MA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_NH4_NP_OA, log_NH4_NP_MA)
+print(cor(sub$log_NH4_NP_OA, sub$log_NH4_NP_MA)) 
+```
+
+```{r fig.height=2.75, fig.width=8}
+## B horizon
+mod.B = lmer(log_NH4_NP_OA ~ log_NH4_NP_MA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+r.squaredGLMM(mod.B)
+#lmm.check(mod.B)
+
+sub = subset(wide_horizon, Horizon %in% c("B"))
+sub <- sub %>% drop_na(log_NH4_NP_OA, log_NH4_NP_MA)
+print(cor(sub$log_NH4_NP_OA, sub$log_NH4_NP_MA))
+```
+
+
+Malic acid vs. APase
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_NH4_NP_MA ~ log_NH4_NP_AP + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_NH4_NP_MA, log_NH4_NP_AP)
+print(cor(sub$log_NH4_NP_MA, sub$log_NH4_NP_AP)) 
+```
+
+```{r fig.height=2.75, fig.width=8}
+## B horizon
+mod.B = lmer(log_NH4_NP_MA ~ log_NH4_NP_AP + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("B")))
+Anova(mod.B, type = 3)
+r.squaredGLMM(mod.B)
+#lmm.check(mod.B)
+
+sub = subset(wide_horizon, Horizon %in% c("B"))
+sub <- sub %>% drop_na(log_NH4_NP_MA, log_NH4_NP_AP)
+print(cor(sub$log_NH4_NP_MA, sub$log_NH4_NP_AP))
+```
+
+
+### Nitrate only
+Oxalic acid vs. APase
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_NO3_NP_AP ~ log_NO3_NP_OA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_NO3_NP_AP, log_NO3_NP_OA)
+print(cor(sub$log_NO3_NP_AP, sub$log_NO3_NP_OA)) 
+```
+
+
+Oxalic acid vs. Malic acid
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_NO3_NP_OA ~ log_NO3_NP_MA + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_NO3_NP_OA, log_NO3_NP_MA)
+print(cor(sub$log_NO3_NP_OA, sub$log_NO3_NP_MA))
+```
+
+
+Malic acid vs. APase
+```{r fig.height=2.75, fig.width=8}
+## A horizon
+mod.A = lmer(log_NO3_NP_MA ~ log_NO3_NP_AP + (1|SiteID), data = subset(wide_horizon, Horizon %in% c("A")))
+Anova(mod.A, type = 3)
+r.squaredGLMM(mod.A)
+#lmm.check(mod.A)
+
+sub = subset(wide_horizon, Horizon %in% c("A"))
+sub <- sub %>% drop_na(log_NO3_NP_MA, log_NO3_NP_AP)
+print(cor(sub$log_NO3_NP_MA, sub$log_NO3_NP_AP)) 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

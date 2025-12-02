@@ -1,0 +1,3 @@
+"0",""
+"0","# Save AllData as intermediate data object"
+"0","write_rds(AllData, here(""data_intermediate"", ""AllData.rds""))"

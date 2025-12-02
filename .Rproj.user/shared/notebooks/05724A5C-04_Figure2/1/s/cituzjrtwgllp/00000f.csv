@@ -1,0 +1,2 @@
+"0","AllData <- read_csv(here(""data_inputs/ExudateProj_Full.csv""))"
+"0","print(AllData)"

@@ -1,0 +1,114 @@
+---
+title: "03_Figure1"
+output: html_document
+date: "2025-10-13"
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggpubr)
+library(sf)
+library(terra)
+```
+
+
+# 1 - Load data files
+```{r}
+# Raster data from PRISM for density plots
+ppt <- rast(here("data_inputs/PRISM_files/PRISM_ppt_30yr_normal_4kmM4_annual_bil.bil"))
+tmean <- rast(here("data_inputs/PRISM_files/PRISM_tmean_30yr_normal_4kmM5_annual_bil.bil"))
+
+# Output as numeric vector
+ppt_vals <- values(ppt, na.rm = TRUE)
+  ppt_vals <- ppt_vals[ppt_vals < quantile(ppt_vals, 0.999)] 
+tmean_vals <- values(tmean, na.rm = TRUE)
+
+# Save as data frames
+ppt.df = as.data.frame(ppt_vals)
+tmean.df = as.data.frame(tmean_vals)
+  tmean.df = tmean.df %>%
+    rename(tmean_vals = PRISM_tmean_30yr_normal_4kmM5_annual_bil)
+```
+
+# 2 - Figure 1 - Map
+Create table of site coordinates
+```{r}
+sites <- tribble(
+  ~site,             ~latitude,     ~longitude,
+  "Calhoun",         34.60694444,   -81.72027778,
+  "Coal Creek",      38.8575,       -107.0466667,
+  "Eastern KS",      38.61222222,   -95.26888889,
+  "Hays KS",         38.87944444,   -99.32222222,
+  "Konza Prairie",   39.10166667,   -96.59305556,
+  "Reynolds Creek",  43.14583333,   -116.7713889,
+)
+```
+
+```{r fig.height=4, fig.width=5}
+us_map <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
+
+ggplot() +
+  geom_sf(data = us_map, fill = "gray95", color = "black") +
+  geom_point(data = sites, aes(x = longitude, y = latitude), 
+             size = 3, color = 'black') + 
+  labs(x = "Longitude", y = "Latitude") +
+  coord_sf(xlim = c(-124, -68), ylim = c(25, 50)) +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 12),
+        axis.ticks = element_line(),
+        panel.background = element_rect(fill = "white"))
+```
+
+
+# 2 - Figure 1 - Histograms
+MAP density plot
+```{r fig.height=1, fig.width=3.4}
+ggplot(ppt.df, aes(x = ppt_vals)) +
+  geom_density(alpha = 0.4, size = 1, fill = "#2C3E6C", color = NA) +
+  labs(x = "MAP (mm)", y = "Density") +
+  theme_classic() + xlim(0,3000) +
+  scale_y_continuous(breaks = c(0, 0.0006, 0.0012)) +
+  theme(axis.text = element_text(size = 10, color = 'black'),
+        axis.title = element_text(size = 10),
+        axis.line = element_line(size = 0.3)) + 
+  geom_rect(aes(xmin = 570, xmax = 1170, ymin = 0.00001, ymax = 0.0013),
+            fill = NA, color = 'black', linewidth = 0.5)
+```
+
+MAT density plot
+```{r fig.height=1, fig.width=3.36}
+ggplot(tmean.df, aes(x = tmean_vals)) +
+  geom_density(alpha = 0.4, size = 1, fill = "#B93E25", color = NA) +
+  labs(x = "MAT (°C)", y = "Density") +
+  theme_classic() +
+  scale_y_continuous(breaks = c(0, 0.05)) +
+  theme(axis.text = element_text(size = 10, color = 'black'),
+        axis.title = element_text(size = 10),
+        axis.line = element_line(size = 0.3)) + 
+  geom_rect(aes(xmin = 1.8, xmax = 16, ymin = 0.0001, ymax = 0.09),
+            fill = NA, color = 'black', linewidth = 0.5)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
