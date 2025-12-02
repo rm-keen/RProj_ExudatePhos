@@ -1,6 +1,0 @@
-"0","h_mod <- horizon_sub %>%"
-"0","  mutate(hz_group = case_when("
-"0","    HorizonFlip %in% c(""O"", ""A"") ~ ""surface"","
-"0","    HorizonFlip %in% c(""B"", ""C"") ~ ""subsurface"""
-"0","  )) %>%"
-"0","  filter(!is.na(hz_group))"
