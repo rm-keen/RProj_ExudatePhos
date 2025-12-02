@@ -1,0 +1,13 @@
+# RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# R Markdown cache / support dirs
+*_cache/
+*_files/
+
+# OS junk
+.DS_Store
+Thumbs.db
