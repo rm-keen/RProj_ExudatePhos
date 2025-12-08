@@ -119,25 +119,6 @@ renv::restore()
 ---
 
 
-### How to reproduce the full analysis  
-**1. Clone the repository**
-```bash 
-git clone https://github.com/USERNAME/RProj_ExudatePhos.git
-cd RProj_ExudatePhos
-```
-
-**2. Open the project and restore packages**  
-Open `RProj_ExudatePhos.Rproj` in RStudio, then run:
-```r
-renv::restore()
-```
-
-**3. Run Data Preparation and Analysis Scripts**
-
-
----
-
-
 ### Statistical Analyses 
 **Brief summary:** Analyses include mixed-effects linear models linking exudate P extraction efficiency (defined as the efficiency of each exudate to liberate soil phosphorous) to soil properties and climate variables. Horizon-level summaries are derived from `horizon_sub.rds`. Climate variables (mean annual precipitation and temperature for each site) are derived from PRISM 30-year normal. Full model specifications and diagnostics are documented in individual R Markdown scripts corresponding with their respective figure.
 
