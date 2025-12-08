@@ -24,6 +24,12 @@ All analyses are written in **R Markdown** and the computational environment is 
 
 ---
 
+### Project Summary
+The code and data provided are associated with the manuscript (currently under review, will add DOI) "Quantifying potential nutrient liberation following plant investment in root exudates: variation across soil profiles and ecosystems in the United States". In this study, synthetic root exudate solutions for oxalic acid, malic acid, and acid phosphatase were created and used to extract phosphate, nitrate, and ammonium from soil samples collected at six site across the United States. Exudates were added in amounts substantially higher than natural field concentrations in order to 'swamp the system' with a given exudate to obtain a maximum (or potential) extraction efficiency. Values in this dataset should not be used to represent 'normal' field-measured values for exudate nutrient extractions.
+
+
+---
+
 
 ### Repository Structure
 ```text
