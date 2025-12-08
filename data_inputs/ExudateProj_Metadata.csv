@@ -1,0 +1,34 @@
+Column Name,Description,Units
+SampleID,"Unique sample ID containing site, profile, and depth sampled",
+SampleNumber,Unique sample number,
+Location,Site name,
+SiteID,Site name with funding project included (FRES or EPSCoR),
+ProfileID,Unique ID for each soil profile,
+NatBiome,Broad ecosystem type,
+CoverType,Dominant vegetation cover,
+Position,"Landscape position (toeslop, midslope, summit)",
+Lithology,Dominant lithology at the profile location,
+SoilFormation,Soil formation type at the profile location,
+MinDepth,Minimum sampling depth (shallowest),cm
+MaxDepth,Maximum sampling depth (deepest),cm
+MidDepth,Middle of sampling depth range,cm
+Horizon_Full,Full horizon designation,
+Horizon,"Trunkated horizon designation (O, A, B, C)",
+Extractant,"Exudate type used to extract the soil sample (Oxalic Acid, Malic Acid, APase)",
+ppm_NH4.N,NH4+ -N extracted ,ppm
+ugNH4.N_gDrySoil,NH4+ -N extracted per unit dry soil,ug g-1 dry soil
+ppm_NO3.N,NO3- -N extracted ,ppm
+ugNO3.N_gDrySoil,NO3- -N extracted per unit dry soil,ug g-1 dry soil
+ppm_PO4.P,PO43- -P extracted ,ppm
+ugPO4.P_gDrySoil,PO43- -P extracted per unit dry soil,ug g-1 dry soil
+RootMass_mg_gsoil,Root biomass,mg g-1 dry soil
+pH,Soil pH measured on fresh soils (prior to freezing or air drying),
+STL_SoilP_ExtractionMethod,Method used for measuring 'potentially plant available P' (Mehlich-3 or Olsen) at the KSU Soil Testing Lab (STL), 
+STL_SoilP_ppm,PO43- -P extracted (potentially plant available P),ppm
+STL_ugP_gDrySoil,PO43- -P extracted per unit dry soil (potentially plant available P),ug g-1 dry soil
+Soil_PercC,Soil carbon content,%
+Soil_MgCg,Soil carbon content,mg g-1
+MAP,"Mean annual precipitation (PRISM 30-yr normal, 4kmM4 annual, 1980-2022)",mm
+MAT,"Mean annual temperature (PRISM 30-yr normal, 4kmM4 annual, 1980-2022)",øC
+DomVeg,"Broad dominant vegetation type (e.g., deciduous woody spp, evergreen woody spp)",
+P_Efficiency,Exudate P extraction efficiency,proportion

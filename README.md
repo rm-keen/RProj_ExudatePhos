@@ -50,14 +50,7 @@ RProj_ExudatePhos/
 `Root_SOC_Profiles.csv`  
 - Root and soil organic carbon profiles used for model summaries.  
 
-PRISM_files folder  
-- `PRISM_ppt_30yr_normal_4kmM4_annual_bil.bil`  
-- `PRISM_ppt_30yr_normal_4kmM4_annual_bil.hdr`  
-- `PRISM_tmean_30yr_normal_4kmM5_annual_bil.bil`  
-- `PRISM_tmean_30yr_normal_4kmM5_annual_bil.hdr`  
-_Thirty-year normal precipitation and mean annual temperature rasters used to derive site-level climate variables._
-
-**Note:** Files in data_inputs/ are treated as read-only. All derived data are written to data\_intermediate/.  
+**Note:** Files in 'data_inputs/' are treated as read-only. All derived data are written to 'data_intermediate/'.  
 
 
 ---
@@ -97,7 +90,7 @@ Scripts are numbered in execution order:
 - Generate supplementary figures and tables  
 
 **Note:** Each figure script...  
-- Reads from `data_intermediate/`
+- Reads from `data_intermediate/`  
 - Loads all required libraries  
 - Produces final figures and/or knitted output  
 
@@ -106,7 +99,7 @@ Scripts are numbered in execution order:
 
 
 ### Software and Reproducibility  
-**R version:**  ADD R VERSION  
+**R version:** R version 4.5.0 (2025-04-11 ucrt)  
 **Environment manager:** `renv`  
 **Primary platform tested:** Windows  
 **Exact package versions are stored in:** `renv.lock` 
@@ -171,7 +164,7 @@ rmarkdown::render("scripts/09_SuppFigures_2.Rmd")
 
 ### Licensing  
 **Code:** PENDING  
-**Data:** PENDING  
+**Data:** https://doi.org/10.5281/zenodo.17857942  
 
 ---
 
@@ -184,7 +177,7 @@ INSERT CITATION AND DOI HERE
 
 Associated manuscript:  
 ```text
-INSERT CITATION AND DOI HERE
+PENDING PUBLICATION
 ```
 
 ---

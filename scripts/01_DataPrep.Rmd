@@ -134,6 +134,7 @@ horizon_sub$HorizonFlip = factor(horizon_sub$Horizon,
 ```
 
 Add mean annual temperature (MAT) data
+(From PRISM 30-yr normals, 1980-2022)
 ```{r}
 horizon_sub$MAT = 999
 horizon_sub$MAT[horizon_sub$Location == "Calhoun"] = 16
