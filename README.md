@@ -3,7 +3,7 @@
 **Authors:** Keen RM,  Sullivan PL, Ajami H, Hirmas D, Li L, Flores AN, Jarecke K, Loecke T, Klamm L, Unruh M, Varikuti V, Billings SA  
 **Corresponding author:** Rachel Keen (rleasey@gmail.com)  
 **Affiliation:** Oregon State University, College of Earth, Ocean, and Atmospheric Sciences  
-**Manuscript status:** IN REVIEW  
+**Manuscript status:** IN REVISION  
 **Associated publication:** PENDING  
 
 
@@ -86,14 +86,14 @@ Scripts are numbered in execution order:
 
 `03_Figure1.Rmd`  
 `04_Figure2.Rmd`  
-`05_Figure3.Rmd`  
-`06_Figure4.Rmd`  
-`07_Figure5.Rmd`  
+`05_Figure3_PlotsAndStats.Rmd`  
+`06_Figure4_PlotsAndStats.Rmd`  
+`07_Figure5_PlotsAndStats.Rmd`  
 - Each script generates one main manuscript figure (Figures 1–5) and includes associated models and statistical results  
 
-`08_SuppFigures_1.Rmd`  
-`09_SuppFigures_2.Rmd`  
-- Generate supplementary figures and tables  
+`08_SuppFiguresAndStats_1.Rmd`  
+`09_SuppFiguresAndStats_2.Rmd`  
+- Generate supplementary figures, tables, and associated statistical analyses  
 
 **Note:** Each figure script...  
 - Reads from `data_intermediate/`  
@@ -115,13 +115,6 @@ Scripts are numbered in execution order:
 install.packages("renv")  # if needed
 renv::restore()
 ```
-
----
-
-
-### Statistical Analyses 
-**Brief summary:** Analyses include mixed-effects linear models linking exudate P extraction efficiency (defined as the efficiency of each exudate to liberate soil phosphorous) to soil properties and climate variables. Horizon-level summaries are derived from `horizon_sub.rds`. Climate variables (mean annual precipitation and temperature for each site) are derived from PRISM 30-year normal. Full model specifications and diagnostics are documented in individual R Markdown scripts corresponding with their respective figure.
-
 
 ---
 
